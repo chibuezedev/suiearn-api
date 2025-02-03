@@ -1,5 +1,6 @@
 const { v4: uuidv4 } = require("uuid");
-
+const mongoose = require("mongoose");
+const bcrypt = require("bcrypt");
 const User = require("../models/user");
 const { isValidId } = require("./isValidId");
 const Verification = require("../models/verification");
@@ -12,7 +13,6 @@ const sendVerificationEmail = async (userId) => {
     if (!user) {
       throw Error("user does not exist");
     }
-
     if (user.isVerified) {
       throw Error("user verified");
     }
@@ -20,10 +20,8 @@ const sendVerificationEmail = async (userId) => {
     await Verification.findOneAndDelete({
       userId: userId,
     });
-
     const uniqueString = uuidv4() + userId;
     const hashedUniqueString = await bcrypt.hash(uniqueString, 10);
-
     const newVerification = await Verification.create({
       userId: userId,
       hashedUniqueString: hashedUniqueString,
@@ -33,7 +31,7 @@ const sendVerificationEmail = async (userId) => {
       message: `<p>Verify your email address to complete the signup process</p></br><p>This link <b>expires in 24 hours</b></p> </br> <p>Click <a href=${process.env.CLIENT_URL}/verifiedmail?userId=${userId}&token=${uniqueString}>here</a> to proceed</p>`,
       subject: "Verify your Email",
     };
-    await sendEmail(user, payload);
+    await sendEmail(user.email, payload.subject, payload.message);
     return {
       message: `Verification email sent to ${user.email}`,
       verificationToken: uniqueString,

@@ -13,9 +13,9 @@ const { generateAuthToken } = require("../helpers/authVerification");
 const { sendVerificationEmail } = require("../helpers/sendVerificationEmail");
 const config = require("../configs/env");
 
-const signup = async (payload) => {
+const signup = async (req, payload) => {
   try {
-    const { userName, email, password } = payload;
+    const { userName, email, password, firstName, lastName } = payload;
     if (!userName || !email || !password) {
       throw new Error("Credentials incomplete");
     }
@@ -23,15 +23,17 @@ const signup = async (payload) => {
       userName,
       email,
       password,
+      firstName,
+      lastName,
     });
-
     const { message, verificationToken } = await sendVerificationEmail(
       user._id
     );
-    return res.status(200).json({
+    return {
       success: true,
       message: message,
-    });
+      verificationToken: verificationToken,
+    };
   } catch (error) {
     let user = await User.findOne({ email: req.body.email });
     await Verification.findOneAndDelete({ userId: user._id });
@@ -115,11 +117,11 @@ const changePassword = async (userId, payload) => {
   }
 };
 
-const verifyEmail = async (userId) => {
+const verifyEmail = async (userId, token) => {
   try {
     isValidId(userId);
-    const { token } = req.query;
     const verification = await Verification.find({ userId: userId });
+    console.log("here")
     if (!verification.length) {
       return HttpError(403, "user not found or has been verified already");
     }

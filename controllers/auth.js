@@ -4,7 +4,7 @@ const response = require("../helpers/response");
 const signup = async (req, res) => {
   const payload = req.body;
   try {
-    const user = await AuthService.signup(payload);
+    const user = await AuthService.signup(req, payload);
     return response(res, 201, "User Successfully Created!", user);
   } catch (error) {
     return response(res, 500, error.message);
@@ -33,9 +33,10 @@ const changePassword = async (req, res) => {
 };
 
 const verifyEmail = async (req, res) => {
-  const userId = req.user.id;
+  const { userId } = req.params;
+  const { token } = req.query;
   try {
-    return await AuthService.verifyEmail(userId);
+    return await AuthService.verifyEmail(userId, token);
   } catch (error) {
     return response(res, 500, error.message);
   }
