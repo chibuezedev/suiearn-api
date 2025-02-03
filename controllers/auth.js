@@ -79,7 +79,8 @@ const requestPasswordReset = async (req, res) => {
 const resetPassword = async (req, res) => {
   try {
     const { token, userId } = req.query;
-    return await AuthService.resetPassword(token, userId);
+    const payload = req.body;
+    return await AuthService.resetPassword(token, userId, payload);
   } catch (err) {
     return response(res, 500, err.message);
   }

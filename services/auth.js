@@ -87,10 +87,10 @@ const login = async (payload) => {
         token: token,
       };
     } else {
-      return HttpError(403, "Email has not been verified, check your inbox");
+      return new HttpError("Email has not been verified, check your inbox", 403);
     }
   } catch (error) {
-    return HttpError(500, "An Error has occurred");
+    return new HttpError("An Error has occurred", 500);
   }
 };
 
@@ -100,11 +100,11 @@ const changePassword = async (userId, payload) => {
     const { oldPassword, newPassword } = payload;
 
     if (!user) {
-      return HttpError(404, "User not found");
+      return new HttpError("User not found", 404);
     }
     const validate = await user.isValidPassword(oldPassword);
     if (!validate) {
-      return HttpError(400, "Old password is incorrect");
+      return new HttpError("Old password is incorrect", 500);
     }
     if (newPassword) {
       user.password = newPassword;
@@ -114,10 +114,10 @@ const changePassword = async (userId, payload) => {
         message: "Password updated",
       };
     } else {
-      return HttpError(400, "New password not provided");
+      return new HttpError("New password not provided", 404);
     }
   } catch (error) {
-    return HttpError(400, error.message);
+    return new HttpError(error.message, 400);
   }
 };
 
@@ -182,7 +182,7 @@ const resendVerificationEmail = async (userId) => {
       verificationToken: verificationToken,
     };
   } catch (error) {
-    return HttpError(500, error.message);
+    return new HttpError(error.message, 500);
   }
 };
 
@@ -191,7 +191,7 @@ const requestPasswordReset = async (payload) => {
   const user = await User.findOne({ email });
 
   if (!user) {
-    throw new HttpError(404, "User not found");
+    throw new HttpError("User not found", 404);
   }
 
   let token = await Token.findOne({ userId: user._id });
@@ -226,26 +226,26 @@ const requestPasswordReset = async (payload) => {
   };
 };
 
-const resetPassword = async (userId, token) => {
+const resetPassword = async (userId, token, payload) => {
   try {
     isValidId(userId);
-    const { password } = req.body;
+    const { password } = payload;
     let passwordResetToken = await Token.findOne({ userId: userId });
     let user = await User.findOne({ _id: userId });
     if (!passwordResetToken) {
-      return new HttpError(403, "Invalid or expired password reset token");
+      return new HttpError("Invalid or expired password reset token", 403);
     }
 
     if (passwordResetToken.expiresAt < Date.now()) {
       await passwordResetToken.deleteOne();
 
-      return new HttpError(403, "Invalid or expired password reset token");
+      return new HttpError("Invalid or expired password reset token", 403);
     }
 
     const isValid = await bcrypt.compare(token, passwordResetToken.token);
 
     if (!isValid) {
-      return new HttpError(403, "Invalid or expired password reset token");
+      return new HttpError("Invalid or expired password reset token", 403);
     }
 
     const hash = await bcrypt.hash(password, 10);
@@ -270,7 +270,7 @@ const resetPassword = async (userId, token) => {
       message: "Password updated successfully",
     };
   } catch (error) {
-    return new HttpError(500, error.message);
+    return new HttpError(error.message, 500);
   }
 };
 
