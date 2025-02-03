@@ -19,6 +19,10 @@ const signup = async (req, payload) => {
     if (!userName || !email || !password) {
       throw new Error("Credentials incomplete");
     }
+
+    if (await User.findOne({ email: email })) {
+      throw new Error("Email already exists");
+    }
     const user = await User.create({
       userName,
       email,
@@ -38,7 +42,7 @@ const signup = async (req, payload) => {
     let user = await User.findOne({ email: req.body.email });
     await Verification.findOneAndDelete({ userId: user._id });
     await User.findOneAndDelete({ _id: user._id });
-    return new Error(error.message);
+    throw new Error(error.message);
   }
 };
 
@@ -120,41 +124,51 @@ const changePassword = async (userId, payload) => {
 const verifyEmail = async (userId, token) => {
   try {
     isValidId(userId);
-    const verification = await Verification.find({ userId: userId });
-    console.log("here")
-    if (!verification.length) {
-      return HttpError(403, "user not found or has been verified already");
+    
+    const verification = await Verification.findOne({ userId: userId });
+    
+    if (!verification) {
+      return { 
+        success: false, 
+        message: "User not found or already verified" 
+      };
     }
-    const { expiresAt, hashedUniqueString } = verification[0];
-    if (expiresAt < Date.now()) {
+    
+    if (verification.expiresAt < Date.now()) {
       await Verification.findOneAndDelete({ userId: userId });
-
-      return HttpError(400, "Verification link has expired");
+      return { 
+        success: false, 
+        message: "Verification link has expired" 
+      };
     }
-
-    const compareString = await bcrypt.compare(token, hashedUniqueString);
+    
+    const compareString = await bcrypt.compare(token, verification.hashedUniqueString);
+    
     if (compareString) {
       await Verification.findOneAndDelete({ userId: userId });
+      
       await User.findByIdAndUpdate(
         userId,
-        {
-          isVerified: true,
-        },
+        { isVerified: true },
         { new: true }
       );
-
+      
       return {
         success: true,
         message: "User has been verified",
       };
     } else {
-      return HttpError(400, "There is an error with the verification link");
+      return { 
+        success: false, 
+        message: "Invalid verification link" 
+      };
     }
   } catch (error) {
-    return HttpError(
-      400,
-      error.message || "There is an error with the verification link"
-    );
+    console.error("Verification error:", error);
+    return { 
+      success: false, 
+      message: error.message || "Verification failed" 
+    };
   }
 };
 
@@ -176,7 +190,9 @@ const requestPasswordReset = async (payload) => {
   const { email } = payload;
   const user = await User.findOne({ email });
 
-  if (!user) return HttpError(404, "User does not exist");
+  if (!user) {
+    throw new HttpError(404, "User not found");
+  }
 
   let token = await Token.findOne({ userId: user._id });
   if (token) await token.deleteOne();
@@ -217,19 +233,19 @@ const resetPassword = async (userId, token) => {
     let passwordResetToken = await Token.findOne({ userId: userId });
     let user = await User.findOne({ _id: userId });
     if (!passwordResetToken) {
-      return HttpError(403, "Invalid or expired password reset token");
+      return new HttpError(403, "Invalid or expired password reset token");
     }
 
     if (passwordResetToken.expiresAt < Date.now()) {
       await passwordResetToken.deleteOne();
 
-      return HttpError(403, "Invalid or expired password reset token");
+      return new HttpError(403, "Invalid or expired password reset token");
     }
 
     const isValid = await bcrypt.compare(token, passwordResetToken.token);
 
     if (!isValid) {
-      return HttpError(403, "Invalid or expired password reset token");
+      return new HttpError(403, "Invalid or expired password reset token");
     }
 
     const hash = await bcrypt.hash(password, 10);
@@ -254,7 +270,7 @@ const resetPassword = async (userId, token) => {
       message: "Password updated successfully",
     };
   } catch (error) {
-    return HttpError(500, error.message);
+    return new HttpError(500, error.message);
   }
 };
 

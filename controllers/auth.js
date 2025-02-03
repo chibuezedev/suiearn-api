@@ -35,13 +35,26 @@ const changePassword = async (req, res) => {
 const verifyEmail = async (req, res) => {
   const { userId } = req.params;
   const { token } = req.query;
+  if (!userId || !token) {
+    return res.status(400).json({ message: "Missing user ID or token" });
+  }
   try {
-    return await AuthService.verifyEmail(userId, token);
+    if (!userId || !token) {
+      return res.status(400).json({ message: "Missing user ID or token" });
+    }
+
+    const result = await AuthService.verifyEmail(userId, token);
+
+    if (result.success) {
+      return res.status(200).json(result);
+    } else {
+      return res.status(400).json(result);
+    }
   } catch (error) {
-    return response(res, 500, error.message);
+    console.error("Email verification error:", error);
+    return res.status(500).json({ message: error.message });
   }
 };
-
 const resendVerificationEmail = async (req, res) => {
   const userId = req.user.id;
   try {

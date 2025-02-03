@@ -8,12 +8,12 @@ const checkUser = async (req, res, next) => {
     });
 
     if (email) {
-      return HttpError(403, "Email already registered");
+      throw new Error(403, "Email already registered");
     }
 
     next();
   } catch (error) {
-    return HttpError(500, error.message);
+    throw new Error(500, error.message);
   }
 };
 

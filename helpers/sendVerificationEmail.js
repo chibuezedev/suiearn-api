@@ -27,8 +27,10 @@ const sendVerificationEmail = async (userId) => {
       hashedUniqueString: hashedUniqueString,
       expiresAt: Date.now() + 24 * (60 * 60 * 1000),
     });
+
+    const verificationLink = `${process.env.CLIENT_URL}/verify-email/${userId}?token=${uniqueString}`;
     const payload = {
-      message: `<p>Verify your email address to complete the signup process</p></br><p>This link <b>expires in 24 hours</b></p> </br> <p>Click <a href=${process.env.CLIENT_URL}/verifiedmail?userId=${userId}&token=${uniqueString}>here</a> to proceed</p>`,
+      message: `<p>Verify your email address to complete the signup process</p></br><p>This link <b>expires in 24 hours</b></p> </br> <p>Click <a href=${verificationLink}>here</a> to proceed</p>`,
       subject: "Verify your Email",
     };
     await sendEmail(user.email, payload.subject, payload.message);
