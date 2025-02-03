@@ -1,6 +1,8 @@
 const express = require("express");
 
-const authRouter = require("./auth");
+const authRoutes = require("./auth");
+const bountyRoutes = require("./bounty");
+const userRoutes = require("./user");
 
 const app = express();
 
@@ -10,6 +12,8 @@ app.get("/api/v1", (req, res) => {
   });
 });
 
-app.use("/api/v1/auth", authRouter);
+app.use("/auth", authRoutes);
+app.use("/bounty", bountyRoutes);
+app.use("/user", userRoutes);
 
 module.exports = app;

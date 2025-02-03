@@ -27,7 +27,7 @@ app.use(morgan("dev"));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.use(routes);
+app.use('/api/v1/', routes);
 
 // Handle errors.
 app.use(function (err, req, res, next) {
