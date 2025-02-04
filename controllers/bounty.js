@@ -1,6 +1,17 @@
 const BountyService = require("../services/bounty");
 const response = require("../helpers/response");
 
+const createBounty = async (req, res) => {
+  const bountyData = req.body;
+  const creator = req.user.id;
+  try {
+    const bounty = await BountyService.createBounty(creator, bountyData);
+    return response(res, 201, "Bounty Successfully Created!!", bounty);
+  } catch (error) {
+    return response(res, 500, "Failed to create bounty", error.message);
+  }
+};
+
 const getAllBounties = async (req, res) => {
   try {
     const bounties = await BountyService.getAllBounties();
@@ -50,4 +61,5 @@ module.exports = {
   getAllBounties,
   submitBountyAnswer,
   getBountyById,
+  createBounty
 };
