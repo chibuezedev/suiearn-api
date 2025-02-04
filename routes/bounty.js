@@ -6,12 +6,14 @@ const router = express.Router();
 
 router.get("/all", bountyController.getAllBounties);
 
-router.post("/submit", bountyController.submitBountyAnswer);
-
 router.get("/:id", bountyController.getBountyById);
 
 router.use(Auth(["admin", "subscriber"]));
 
 router.post("/create", bountyController.createBounty);
+
+router.put("/:id", bountyController.updateBounty);
+
+router.post("/submit", bountyController.submitBountyAnswer);
 
 module.exports = router;

@@ -12,6 +12,20 @@ const createBounty = async (req, res) => {
   }
 };
 
+const updateBounty = async (req, res) => {
+  const bountyId = req.params.id;
+  const updatedData = req.body;
+
+  try {
+    const updatedBounty = await BountyService.updateBounty(
+      bountyId,
+      updatedData
+    );
+    return response(res, 200, "Bounty successfully updated!!", updatedBounty);
+  } catch (error) {
+    return response(res, 500, "Failed to update bounty", error.message);
+  }
+};
 const getAllBounties = async (req, res) => {
   try {
     const bounties = await BountyService.getAllBounties();
@@ -61,5 +75,6 @@ module.exports = {
   getAllBounties,
   submitBountyAnswer,
   getBountyById,
-  createBounty
+  createBounty,
+  updateBounty,
 };

@@ -5,7 +5,6 @@ const passport = require("passport");
 const User = require("../models/user");
 const Verification = require("../models/verification");
 const Token = require("../models/token");
-const HttpError = require("../helpers/httpError");
 
 const { sendEmail } = require("../helpers/sendEmail");
 const { isValidId } = require("../helpers/isValidId");
@@ -87,10 +86,10 @@ const login = async (payload) => {
         token: token,
       };
     } else {
-      return new HttpError("Email has not been verified, check your inbox", 403);
+      throw new Error("Email has not been verified, check your inbox");
     }
   } catch (error) {
-    return new HttpError("An Error has occurred", 500);
+    throw new Error("An Error has occurred", error.message);
   }
 };
 
@@ -100,11 +99,11 @@ const changePassword = async (userId, payload) => {
     const { oldPassword, newPassword } = payload;
 
     if (!user) {
-      return new HttpError("User not found", 404);
+      throw new Error("User not found");
     }
     const validate = await user.isValidPassword(oldPassword);
     if (!validate) {
-      return new HttpError("Old password is incorrect", 500);
+      throw new Error("Old password is incorrect");
     }
     if (newPassword) {
       user.password = newPassword;
@@ -114,10 +113,10 @@ const changePassword = async (userId, payload) => {
         message: "Password updated",
       };
     } else {
-      return new HttpError("New password not provided", 404);
+      throw new Error("New password not provided");
     }
   } catch (error) {
-    return new HttpError(error.message, 400);
+    throw new Error(error.message);
   }
 };
 
@@ -182,7 +181,7 @@ const resendVerificationEmail = async (userId) => {
       verificationToken: verificationToken,
     };
   } catch (error) {
-    return new HttpError(error.message, 500);
+    throw new Error(error.message);
   }
 };
 
@@ -191,7 +190,7 @@ const requestPasswordReset = async (payload) => {
   const user = await User.findOne({ email });
 
   if (!user) {
-    throw new HttpError("User not found", 404);
+    throw new Error("User not found");
   }
 
   let token = await Token.findOne({ userId: user._id });
@@ -235,19 +234,19 @@ const resetPassword = async (userId, token, payload) => {
     const user = await User.findOne({ _id: userId });
 
     if (!passwordResetToken) {
-      return new HttpError("Invalid or expired password reset token", 403);
+      throw new Error("Invalid or expired password reset token");
     }
 
     if (passwordResetToken.expiresAt < Date.now()) {
       await passwordResetToken.deleteOne();
 
-      return new HttpError("Invalid or expired password reset token", 403);
+      throw new Error("Invalid or expired password reset token");
     }
 
     const isValid = await bcrypt.compare(token, passwordResetToken.token);
 
     if (!isValid) {
-      return new HttpError("Invalid or expired password reset token", 403);
+      throw new Error("Invalid or expired password reset token");
     }
 
     const hash = await bcrypt.hash(password, 10);
@@ -271,7 +270,7 @@ const resetPassword = async (userId, token, payload) => {
       message: "Password updated successfully",
     };
   } catch (error) {
-    return new HttpError(error.message, 500);
+    throw new Error(error.message);
   }
 };
 

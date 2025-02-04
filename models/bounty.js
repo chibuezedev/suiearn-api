@@ -3,7 +3,6 @@ const mongoose = require("mongoose");
 const BountySchema = new mongoose.Schema(
   {
     title: { type: String, required: true },
-    wallet: { type: String, required: true },
     description: { type: String, required: true },
     reward: { type: Number, required: true },
     status: {
@@ -26,6 +25,18 @@ const BountySchema = new mongoose.Schema(
     },
     thumbnail: {
       type: String,
+      default: null,
+    },
+    startDate: {
+      type: Date,
+      required: true,
+    },
+    endDate: {
+      type: Date,
+      required: true,
+    },
+    data: {
+      type: mongoose.Schema.Types.Mixed,
       default: null,
     }
   },

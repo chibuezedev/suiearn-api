@@ -7,12 +7,15 @@ const SubmissionSchema = new mongoose.Schema(
       ref: "Bounty",
       required: true,
     },
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
+    users: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true,
+      },
+    ],
     solution: { type: String, required: true },
+    wallet: { type: String, required: true },
   },
   { timestamps: true }
 );

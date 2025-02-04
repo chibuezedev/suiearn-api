@@ -44,6 +44,9 @@ const userSchema = new Schema(
       enum: ["subscriber", "admin"],
       default: "subscriber",
     },
+    wallet: {
+      type: String,
+    },
     role: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Role",
