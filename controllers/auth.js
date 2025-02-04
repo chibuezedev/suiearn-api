@@ -58,7 +58,8 @@ const verifyEmail = async (req, res) => {
 const resendVerificationEmail = async (req, res) => {
   const userId = req.user.id;
   try {
-    await AuthService.resendVerificationEmail(userId);
+    const result = await AuthService.resendVerificationEmail(userId);
+    return response(res, 200, result.message, result);
   } catch (error) {
     return response(res, 500, error.message);
   }
@@ -66,7 +67,8 @@ const resendVerificationEmail = async (req, res) => {
 
 const requestPasswordReset = async (req, res) => {
   try {
-    return await AuthService.requestPasswordReset(req.body);
+    const result = await AuthService.requestPasswordReset(req.body);
+    return response(res, 200, "Password reset request sent successfully!", result);
   } catch (error) {
     return response(
       res,
@@ -80,7 +82,8 @@ const resetPassword = async (req, res) => {
   try {
     const { token, userId } = req.query;
     const payload = req.body;
-    return await AuthService.resetPassword(token, userId, payload);
+    const result = await AuthService.resetPassword(userId, token, payload);
+    return response(res, 200, result.message, result);
   } catch (err) {
     return response(res, 500, err.message);
   }

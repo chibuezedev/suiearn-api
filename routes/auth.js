@@ -10,6 +10,7 @@ const {
   requestPasswordReset,
   resetPassword,
   verifyEmail,
+  resendVerificationEmail
 } = require("../controllers/auth");
 const { googleLogin, googleCallback } = require("../services/auth");
 const { Auth } = require("../middlewares/auth");
@@ -19,6 +20,7 @@ router.get("/verify-email/:userId", verifyEmail);
 router.post("/login", login);
 router.post("/request-reset-password", requestPasswordReset);
 router.post("/passwordReset", resetPassword);
+router.post("/resend-verification-email", resendVerificationEmail);
 
 router.get("/google", googleLogin);
 router.get("/google/callback", googleCallback);

@@ -5,7 +5,7 @@ const passport = require("passport");
 const User = require("../models/user");
 const Verification = require("../models/verification");
 const Token = require("../models/token");
-const HttpError = require("../helpers/HttpError");
+const HttpError = require("../helpers/httpError");
 
 const { sendEmail } = require("../helpers/sendEmail");
 const { isValidId } = require("../helpers/isValidId");
@@ -231,7 +231,9 @@ const resetPassword = async (userId, token, payload) => {
     isValidId(userId);
     const { password } = payload;
     let passwordResetToken = await Token.findOne({ userId: userId });
-    let user = await User.findOne({ _id: userId });
+
+    const user = await User.findOne({ _id: userId });
+
     if (!passwordResetToken) {
       return new HttpError("Invalid or expired password reset token", 403);
     }
@@ -263,8 +265,7 @@ const resetPassword = async (userId, token, payload) => {
             <p>Your password has been changed successfully</p>`,
     };
 
-    const { email: userEmail } = userEmail;
-    await sendEmail(userEmail, EmailPayload.subject, EmailPayload.message);
+    await sendEmail(user.email, EmailPayload.subject, EmailPayload.message);
     return {
       success: true,
       message: "Password updated successfully",
