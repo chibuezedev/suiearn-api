@@ -126,7 +126,22 @@ const submitBountyAnswer = async (bountyId, payload) => {
       throw new Error("Bounty submission period has ended");
     }
 
-    const { solution, wallet, userIds} = payload;
+    const { solution, wallet, userIds } = payload;
+    
+    if (!solution || !wallet || !userIds || !Array.isArray(userIds)) {
+      throw new Error(
+        "Solution, wallet, userIds, and userIds array are required"
+      );
+    }
+
+    const existingSubmission = await Submission.findOne({
+      bounty: bountyId,
+      users: { $in: userIds }
+    });
+
+    if (existingSubmission) {
+      throw new Error("One or more users have already submitted an answer for this bounty");
+    }
 
     const submission = new Submission({
       bounty: bountyId,
