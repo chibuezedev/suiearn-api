@@ -14,7 +14,7 @@ const SubmissionSchema = new mongoose.Schema(
         required: true,
       },
     ],
-    solution: { type: String, required: true },
+    solution: { type: mongoose.Schema.Types.Mixed, required: true },
     wallet: { type: String, required: true },
   },
   { timestamps: true }

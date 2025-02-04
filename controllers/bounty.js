@@ -42,12 +42,10 @@ const getAllBounties = async (req, res) => {
 
 const submitBountyAnswer = async (req, res) => {
   const bountyId = req.params.id;
-  const userId = req.user.id;
 
   try {
     const bounty = await BountyService.submitBountyAnswer(
       bountyId,
-      userId,
       req.body
     );
     return response(res, 200, "Bounty answer submitted successfully", bounty);

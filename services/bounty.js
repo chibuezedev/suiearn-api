@@ -1,4 +1,5 @@
 const Bounty = require("../models/bounty");
+const Submission = require("../models/submission");
 const mongoose = require("mongoose");
 
 const createBounty = async (creator, bountyData) => {
@@ -68,7 +69,6 @@ const updateBounty = async (bountyId, updateData) => {
   }
 };
 
-
 const getAllBounties = async (filters = {}) => {
   try {
     const query = {};
@@ -87,7 +87,8 @@ const getAllBounties = async (filters = {}) => {
     }
 
     const bounties = await Bounty.find(query).populate(
-      "createdBy", "username firstName lastName email"
+      "createdBy",
+      "username firstName lastName email"
     );
     return bounties;
   } catch (error) {
@@ -98,7 +99,8 @@ const getAllBounties = async (filters = {}) => {
 const getBountyById = async (id) => {
   try {
     const bounty = await Bounty.findById(id).populate(
-      "createdBy", "username firstName lastName email"
+      "createdBy",
+      "username firstName lastName email"
     );
     if (!bounty) {
       throw new Error("Bounty not found");
@@ -109,21 +111,47 @@ const getBountyById = async (id) => {
   }
 };
 
-const submitBountyAnswer = async (bountyId, userId, answerDetails) => {
+const submitBountyAnswer = async (bountyId, payload) => {
   try {
     const bounty = await Bounty.findById(bountyId);
     if (!bounty) {
       throw new Error("Bounty not found");
     }
 
-    bounty.status = "IN_PROGRESS";
+    if (bounty.status === "COMPLETED") {
+      throw new Error("Cannot submit answer to a completed bounty");
+    }
+
+    if (new Date() > bounty.endDate) {
+      throw new Error("Bounty submission period has ended");
+    }
+
+    const { solution, wallet, userIds} = payload;
+
+    const submission = new Submission({
+      bounty: bountyId,
+      users: userIds,
+      solution,
+      wallet,
+    });
+
+    await submission.save();
+
+    bounty.submissions.push(submission._id);
+
+    if (bounty.status === "OPEN") {
+      bounty.status = "IN_PROGRESS";
+    }
+
     await bounty.save();
+
+    const populatedSubmission = await Submission.findById(submission._id)
+      .populate("users", "name email")
+      .populate("bounty", "title reward");
 
     return {
       message: "Bounty answer submitted successfully",
-      bountyId,
-      userId,
-      answerDetails,
+      submission: populatedSubmission,
     };
   } catch (error) {
     throw new Error(`Failed to submit bounty answer: ${error.message}`);
@@ -135,5 +163,5 @@ module.exports = {
   getBountyById,
   submitBountyAnswer,
   createBounty,
-  updateBounty
+  updateBounty,
 };

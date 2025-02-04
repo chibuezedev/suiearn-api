@@ -14,6 +14,6 @@ router.post("/create", bountyController.createBounty);
 
 router.put("/:id", bountyController.updateBounty);
 
-router.post("/submit", bountyController.submitBountyAnswer);
+router.post("/submit/:id", bountyController.submitBountyAnswer);
 
 module.exports = router;
