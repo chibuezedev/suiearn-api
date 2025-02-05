@@ -1,5 +1,5 @@
 const getErrorMessage = require("./getErrorMessage");
-const HttpError = require("./HttpError");
+const HttpError = require("./httpError");
 const response = require("./response");
 
 const errorResponse = (res, err, customCode = undefined) => {
