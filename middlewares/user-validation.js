@@ -1,5 +1,5 @@
 const User = require("../models/user");
-const HttpError = require("../helpers/HttpError");
+const HttpError = require("../helpers/httpError");
 
 const checkUser = async (req, res, next) => {
   try {
