@@ -6,7 +6,7 @@ const userRoutes = require("./user");
 
 const app = express();
 
-app.get("/api/v1", (req, res) => {
+app.get("/", (req, res) => {
   res.status(200).json({
     message: "WELCOME TO SUIEARN API",
   });
