@@ -27,6 +27,12 @@ app.use(morgan("dev"));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+app.get("/", (req, res) => {
+  res.status(200).json({
+    message: "WELCOME TO SUIEARN API!!",
+  });
+});
+
 app.use('/api/v1/', routes);
 
 // Handle errors.
