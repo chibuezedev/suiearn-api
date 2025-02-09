@@ -8,7 +8,7 @@ const app = express();
 
 app.get("/", (req, res) => {
   res.status(200).json({
-    message: "WELCOME TO SUIEARN API",
+    message: "WELCOME TO SUIEARN API!!",
   });
 });
 
