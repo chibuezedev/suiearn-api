@@ -3,6 +3,7 @@ const bodyParser = require("body-parser");
 const morgan = require("morgan");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
+const cors = require("cors");
 
 const connection = require("./configs/db");
 const routes = require("./routes/main");
@@ -26,6 +27,11 @@ app.use(helmet());
 app.use(morgan("dev"));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+app.use(cors({
+  origin: "*",
+  exposedHeaders: "Authorization"
+}))
 
 app.get("/", (req, res) => {
   res.status(200).json({
