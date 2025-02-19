@@ -28,6 +28,7 @@ const createBounty = async (creator, bountyData) => {
       endDate,
       status: "OPEN",
       createdBy: creator,
+      ...bountyData,
     });
     await bounty.save();
     return bounty;
