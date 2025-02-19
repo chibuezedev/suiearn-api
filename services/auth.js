@@ -22,6 +22,11 @@ const signup = async (req, payload) => {
     if (await User.findOne({ email: email })) {
       throw new Error("Email already exists");
     }
+
+    if (await User.findOne({ userName: userName })) {
+      throw new Error("User Name already exists, Please choose another one!");
+    }
+
     const user = await User.create({
       userName,
       email,
@@ -39,8 +44,10 @@ const signup = async (req, payload) => {
     };
   } catch (error) {
     let user = await User.findOne({ email: req.body.email });
-    await Verification.findOneAndDelete({ userId: user._id });
-    await User.findOneAndDelete({ _id: user._id });
+    if (user) {
+      await Verification.findOneAndDelete({ userId: user._id });
+      await User.findOneAndDelete({ _id: user._id });
+    }
     throw new Error(error.message);
   }
 };
@@ -123,50 +130,49 @@ const changePassword = async (userId, payload) => {
 const verifyEmail = async (userId, token) => {
   try {
     isValidId(userId);
-    
+
     const verification = await Verification.findOne({ userId: userId });
-    
+
     if (!verification) {
-      return { 
-        success: false, 
-        message: "User not found or already verified" 
+      return {
+        success: false,
+        message: "User not found or already verified",
       };
     }
-    
+
     if (verification.expiresAt < Date.now()) {
       await Verification.findOneAndDelete({ userId: userId });
-      return { 
-        success: false, 
-        message: "Verification link has expired" 
+      return {
+        success: false,
+        message: "Verification link has expired",
       };
     }
-    
-    const compareString = await bcrypt.compare(token, verification.hashedUniqueString);
-    
+
+    const compareString = await bcrypt.compare(
+      token,
+      verification.hashedUniqueString
+    );
+
     if (compareString) {
       await Verification.findOneAndDelete({ userId: userId });
-      
-      await User.findByIdAndUpdate(
-        userId,
-        { isVerified: true },
-        { new: true }
-      );
-      
+
+      await User.findByIdAndUpdate(userId, { isVerified: true }, { new: true });
+
       return {
         success: true,
         message: "User has been verified",
       };
     } else {
-      return { 
-        success: false, 
-        message: "Invalid verification link" 
+      return {
+        success: false,
+        message: "Invalid verification link",
       };
     }
   } catch (error) {
     console.error("Verification error:", error);
-    return { 
-      success: false, 
-      message: error.message || "Verification failed" 
+    return {
+      success: false,
+      message: error.message || "Verification failed",
     };
   }
 };
