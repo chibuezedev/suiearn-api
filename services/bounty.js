@@ -4,7 +4,17 @@ const mongoose = require("mongoose");
 
 const createBounty = async (creator, bountyData) => {
   try {
-    const { title, description, reward, startDate, endDate } = bountyData;
+    const {
+      title,
+      description,
+      reward,
+      startDate,
+      endDate,
+      about,
+      eligibility,
+      requirements,
+      procedure,
+    } = bountyData;
     if (!mongoose.Types.ObjectId.isValid(creator)) {
       throw new Error("Invalid creator ID");
     }
@@ -12,9 +22,19 @@ const createBounty = async (creator, bountyData) => {
       throw new Error("Start date cannot be after end date");
     }
 
-    if (!title || !description || !reward || !startDate || !endDate) {
+    if (
+      !title ||
+      !description ||
+      !reward ||
+      !startDate ||
+      !endDate ||
+      !about ||
+      !eligibility ||
+      !requirements ||
+      !procedure
+    ) {
       throw new Error(
-        "Title, description, Start Date, End Date, and reward are required"
+        "Title, description, Start Date, End Date,  and reward are required"
       );
     }
     if (parseFloat(reward) <= 0) {
@@ -28,7 +48,10 @@ const createBounty = async (creator, bountyData) => {
       endDate,
       status: "OPEN",
       createdBy: creator,
-      ...bountyData,
+      about,
+      eligibility,
+      requirements,
+      procedure,
     });
     await bounty.save();
     return bounty;
@@ -128,7 +151,7 @@ const submitBountyAnswer = async (bountyId, payload) => {
     }
 
     const { solution, wallet, userIds } = payload;
-    
+
     if (!solution || !wallet || !userIds || !Array.isArray(userIds)) {
       throw new Error(
         "Solution, wallet, userIds, and userIds array are required"
@@ -137,11 +160,13 @@ const submitBountyAnswer = async (bountyId, payload) => {
 
     const existingSubmission = await Submission.findOne({
       bounty: bountyId,
-      users: { $in: userIds }
+      users: { $in: userIds },
     });
 
     if (existingSubmission) {
-      throw new Error("One or more users have already submitted an answer for this bounty");
+      throw new Error(
+        "One or more users have already submitted an answer for this bounty"
+      );
     }
 
     const submission = new Submission({
