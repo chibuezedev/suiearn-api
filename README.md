@@ -21,3 +21,5 @@
 2. **Merging to `main`**:
    - Before merging, ensure there are no conflicts between `dev` and `main`.
    - Conduct a thorough code review and testing to guarantee that the code is stable and production-ready.
+
+the basics
