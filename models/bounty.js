@@ -4,7 +4,11 @@ const BountySchema = new mongoose.Schema(
   {
     title: { type: String, required: true },
     description: { type: String, required: true },
-    reward: { type: Number, required: true },
+    reward: {
+      first: { type: Number, required: true },
+      second: { type: String, required: true },
+      third: { type: String, required: true },
+    },
     about: { type: String, required: true },
     eligibility: { type: String, required: true },
     requirements: { type: String, required: true },
@@ -42,7 +46,7 @@ const BountySchema = new mongoose.Schema(
     data: {
       type: mongoose.Schema.Types.Mixed,
       default: null,
-    }
+    },
   },
   { timestamps: true }
 );

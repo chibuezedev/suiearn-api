@@ -34,11 +34,8 @@ const createBounty = async (creator, bountyData) => {
       !procedure
     ) {
       throw new Error(
-        "Title, description, Start Date, End Date,  and reward are required"
+        "Title, description, Start Date, End Date, about, eligibility, requirements, procedure and reward are required"
       );
-    }
-    if (parseFloat(reward) <= 0) {
-      throw new Error("Reward must be a positive number");
     }
     const bounty = new Bounty({
       title,
