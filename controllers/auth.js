@@ -7,7 +7,10 @@ const signup = async (req, res) => {
     const user = await AuthService.signup(req, payload);
     return response(res, 201, "User Successfully Created!", user);
   } catch (error) {
-    return response(res, 500, error.message);
+    if (error.code && typeof error.code === 'number') {
+      return response(res, error.code, error.message, null);
+    }
+    return response(res, 500, error.message || "Internal server error", null);
   }
 };
 
@@ -17,7 +20,10 @@ const login = async (req, res) => {
     const user = await AuthService.login(payload);
     return response(res, 200, "User logged in successfully!", user);
   } catch (error) {
-    return response(res, 500, error.message);
+    if (error.code && typeof error.code === 'number') {
+      return response(res, error.code, error.message, null);
+    }
+    return response(res, 500, error.message || "Internal server error", null);
   }
 };
 
@@ -28,7 +34,10 @@ const changePassword = async (req, res) => {
     await AuthService.changePassword(userId, payload);
     return response(res, 200, "Password changed successfully!");
   } catch (error) {
-    return response(res, 500, error.message);
+    if (error.code && typeof error.code === 'number') {
+      return response(res, error.code, error.message, null);
+    }
+    return response(res, 500, error.message || "Internal server error", null);
   }
 };
 
@@ -52,7 +61,10 @@ const verifyEmail = async (req, res) => {
     }
   } catch (error) {
     console.error("Email verification error:", error);
-    return res.status(500).json({ message: error.message });
+    if (error.code && typeof error.code === 'number') {
+      return response(res, error.code, error.message, null);
+    }
+    return response(res, 500, error.message || "Internal server error", null);
   }
 };
 const resendVerificationEmail = async (req, res) => {
@@ -61,7 +73,10 @@ const resendVerificationEmail = async (req, res) => {
     const result = await AuthService.resendVerificationEmail(userId);
     return response(res, 200, result.message, result);
   } catch (error) {
-    return response(res, 500, error.message);
+    if (error.code && typeof error.code === 'number') {
+      return response(res, error.code, error.message, null);
+    }
+    return response(res, 500, error.message || "Internal server error", null);
   }
 };
 
@@ -70,11 +85,10 @@ const requestPasswordReset = async (req, res) => {
     const result = await AuthService.requestPasswordReset(req.body);
     return response(res, 200, "Password reset request sent successfully!", result);
   } catch (error) {
-    return response(
-      res,
-      500,
-      "Failed to send password reset request." || error.message
-    );
+    if (error.code && typeof error.code === 'number') {
+      return response(res, error.code, error.message, null);
+    }
+    return response(res, 500, error.message || "Internal server error", null);
   }
 };
 
@@ -85,7 +99,10 @@ const resetPassword = async (req, res) => {
     const result = await AuthService.resetPassword(userId, token, payload);
     return response(res, 200, result.message, result);
   } catch (err) {
-    return response(res, 500, err.message);
+    if (error.code && typeof error.code === 'number') {
+      return response(res, error.code, error.message, null);
+    }
+    return response(res, 500, error.message || "Internal server error", null);
   }
 };
 

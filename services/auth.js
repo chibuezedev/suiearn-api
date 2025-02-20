@@ -12,19 +12,28 @@ const { generateAuthToken } = require("../helpers/authVerification");
 const { sendVerificationEmail } = require("../helpers/sendVerificationEmail");
 const config = require("../configs/env");
 
+class HttpError extends Error {
+  constructor(message, errorCode) {
+    super(message);
+    this.code = errorCode;
+    this.name = "HttpError";
+  }
+}
+
+
 const signup = async (req, payload) => {
   try {
     const { userName, email, password, firstName, lastName } = payload;
     if (!userName || !email || !password) {
-      throw new Error("Credentials incomplete");
+      throw new HttpError("Credentials incomplete", 400);
     }
 
     if (await User.findOne({ email: email })) {
-      throw new Error("Email already exists");
+      throw new HttpError("Email already exists", 404);
     }
 
     if (await User.findOne({ userName: userName })) {
-      throw new Error("User Name already exists, Please choose another one!");
+      throw new HttpError("User Name already exists, Please choose another one!", 400);
     }
 
     const user = await User.create({
@@ -48,7 +57,13 @@ const signup = async (req, payload) => {
       await Verification.findOneAndDelete({ userId: user._id });
       await User.findOneAndDelete({ _id: user._id });
     }
-    throw new Error(error.message);
+    if (error.code && typeof error.code === "number") {
+      throw error;
+    }
+    throw new HttpError(
+      error.message || "Failed to get Product, Try Again!",
+      500
+    );
   }
 };
 
@@ -56,27 +71,23 @@ const login = async (payload) => {
   try {
     const { email, password } = payload;
     if (!email) {
-      throw new Error("Email is required");
+      throw new HttpError("Email is required", 400);
     }
 
     if (!password) {
-      throw new Error("Password is required");
+      throw new HttpError("Password is required", 400);
     }
-
     const user = await User.findOne({ email: email });
-
     if (!user) {
       throw new Error("User does not exist");
     }
 
     if (user.isVerified) {
       const validate = await user.isValidPassword(password);
-
       if (!validate) {
-        throw new Error("Password is Incorrect");
+        throw new HttpError("Password is Incorrect", 400);
       }
       const token = generateAuthToken(user);
-
       return {
         success: true,
         message: "Login successful",
@@ -93,10 +104,16 @@ const login = async (payload) => {
         token: token,
       };
     } else {
-      throw new Error("Email has not been verified, check your inbox");
+      throw new HttpError("Email has not been verified, check your inbox", 400);
     }
   } catch (error) {
-    throw new Error("An Error has occurred", error.message);
+    if (error.code && typeof error.code === "number") {
+      throw error;
+    }
+    throw new HttpError(
+      error.message || "Failed to get Product, Try Again!",
+      500
+    );
   }
 };
 
@@ -106,11 +123,11 @@ const changePassword = async (userId, payload) => {
     const { oldPassword, newPassword } = payload;
 
     if (!user) {
-      throw new Error("User not found");
+      throw new HttpError("User not found", 404);
     }
     const validate = await user.isValidPassword(oldPassword);
     if (!validate) {
-      throw new Error("Old password is incorrect");
+      throw new HttpError("Old password is incorrect", 400);
     }
     if (newPassword) {
       user.password = newPassword;
@@ -120,10 +137,16 @@ const changePassword = async (userId, payload) => {
         message: "Password updated",
       };
     } else {
-      throw new Error("New password not provided");
+      throw new HttpError("New password not provided", 400);
     }
   } catch (error) {
-    throw new Error(error.message);
+    if (error.code && typeof error.code === "number") {
+      throw error;
+    }
+    throw new HttpError(
+      error.message || "Failed to get Product, Try Again!",
+      500
+    );
   }
 };
 
@@ -170,10 +193,13 @@ const verifyEmail = async (userId, token) => {
     }
   } catch (error) {
     console.error("Verification error:", error);
-    return {
-      success: false,
-      message: error.message || "Verification failed",
-    };
+    if (error.code && typeof error.code === "number") {
+      throw error;
+    }
+    throw new HttpError(
+      error.message || "Verification failed, Try Again!",
+      500
+    );
   }
 };
 
@@ -187,7 +213,13 @@ const resendVerificationEmail = async (userId) => {
       verificationToken: verificationToken,
     };
   } catch (error) {
-    throw new Error(error.message);
+    if (error.code && typeof error.code === "number") {
+      throw error;
+    }
+    throw new HttpError(
+      error.message || "Verification failed, Try Again!",
+      500
+    );
   }
 };
 
@@ -196,7 +228,7 @@ const requestPasswordReset = async (payload) => {
   const user = await User.findOne({ email });
 
   if (!user) {
-    throw new Error("User not found");
+    throw new HttpError("User not found", 404);
   }
 
   let token = await Token.findOne({ userId: user._id });
@@ -240,19 +272,19 @@ const resetPassword = async (userId, token, payload) => {
     const user = await User.findOne({ _id: userId });
 
     if (!passwordResetToken) {
-      throw new Error("Invalid or expired password reset token");
+      throw new HttpError("Invalid or expired password reset token", 400);
     }
 
     if (passwordResetToken.expiresAt < Date.now()) {
       await passwordResetToken.deleteOne();
 
-      throw new Error("Invalid or expired password reset token");
+      throw new HttpError("Invalid or expired password reset token", 400);
     }
 
     const isValid = await bcrypt.compare(token, passwordResetToken.token);
 
     if (!isValid) {
-      throw new Error("Invalid or expired password reset token");
+      throw new HttpError("Invalid or expired password reset token", 400);
     }
 
     const hash = await bcrypt.hash(password, 10);
@@ -276,7 +308,13 @@ const resetPassword = async (userId, token, payload) => {
       message: "Password updated successfully",
     };
   } catch (error) {
-    throw new Error(error.message);
+    if (error.code && typeof error.code === "number") {
+      throw error;
+    }
+    throw new HttpError(
+      error.message || "Reset failed, Try Again!",
+      500
+    );
   }
 };
 
