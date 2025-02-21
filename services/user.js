@@ -7,6 +7,12 @@ const updateProfile = async (userId, profileData) => {
   });
 };
 
+const getProfile = async (userId) => {
+  return await User.findById(userId, { password: 0 });
+};
+
+
 module.exports = {
   updateProfile,
+  getProfile
 };
